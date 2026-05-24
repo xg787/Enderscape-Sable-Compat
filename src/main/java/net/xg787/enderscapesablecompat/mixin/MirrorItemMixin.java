@@ -5,9 +5,10 @@ import dev.ryanhcode.sable.companion.SableCompanion;
 import dev.ryanhcode.sable.companion.SubLevelAccess;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.SubLevel;
-import net.bunten.enderscape.item.LodestoneTeleporter;
-import net.bunten.enderscape.item.LodestoneTrackerContext;
-import net.bunten.enderscape.item.component.FueledTool;
+import net.bunten.enderscape.item.MirrorContext;
+import net.bunten.enderscape.item.MirrorItem;
+import net.bunten.enderscape.item.NebuliteToolContext;
+import net.bunten.enderscape.item.NebuliteToolItem;
 import net.bunten.enderscape.registry.EnderscapeCriteria;
 import net.bunten.enderscape.registry.EnderscapeItemSounds;
 import net.bunten.enderscape.registry.EnderscapeStats;
@@ -44,8 +45,12 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.Optional;
 
 
-@Mixin(LodestoneTeleporter.class)
-public class LodestoneTeleporterMixin {
+@Mixin(MirrorItem.class)
+public abstract class MirrorItemMixin extends NebuliteToolItem {
+
+    public MirrorItemMixin(Properties properties) {
+        super(properties);
+    }
 
     /**
      * @author Xg787
@@ -125,16 +130,16 @@ public class LodestoneTeleporterMixin {
      */
     @Overwrite
     public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
+        Level world = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        BlockState state = level.getBlockState(pos);
+        BlockState state = world.getBlockState(pos);
         ItemStack stack = context.getItemInHand();
-        if (FueledTool.is(stack) && state.is(Blocks.LODESTONE)) {
-            enderscape_Sable_Compat$writeData(stack, pos, level, context.getLevel().dimension());
-            level.playSound((Player)null, pos, (SoundEvent) EnderscapeItemSounds.MIRROR_LINK.value(), SoundSource.PLAYERS, 1.0F, 1.0F);
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
+        if (state.is(Blocks.LODESTONE)) {
+            enderscape_Sable_Compat$writeData(stack, pos, world, context.getLevel().dimension());
+            world.playSound((Player)null, pos, (SoundEvent)EnderscapeItemSounds.MIRROR_LINK.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+            return InteractionResult.SUCCESS;
         } else {
-            return InteractionResult.PASS;
+            return super.useOn(context);
         }
     }
 
@@ -157,7 +162,7 @@ public class LodestoneTeleporterMixin {
      * @reason Fix unloaded sublevel teleport and move to sable lodestone tracker
      */
     @Overwrite
-    public static Optional<Vec3> getTeleportPosition(LodestoneTrackerContext context) {
+    public static Optional<Vec3> getTeleportPosition(MirrorContext context) {
         ServerLevel level = context.linkedLevel();
         LivingEntity user = context.user();
         EntityDimensions dimensions = user.getDimensions(Pose.STANDING);
@@ -192,7 +197,7 @@ public class LodestoneTeleporterMixin {
      * @reason fix statistics and advancement
      */
     @Overwrite
-    private static void awardStatistics(LodestoneTrackerContext context, GlobalPos prior, GlobalPos destination, boolean fromDispenser) {
+    private static void awardMirrorStatistics(MirrorContext context, GlobalPos prior, GlobalPos destination, boolean fromDispenser) {
         if (context.user() instanceof ServerPlayer player) {
             if (!player.getAbilities().instabuild || fromDispenser) player.getCooldowns().addCooldown(context.stack().getItem(), 100);
 
@@ -212,13 +217,13 @@ public class LodestoneTeleporterMixin {
                 if (centimeterDistance > 0) {
                     player.awardStat(EnderscapeStats.MIRROR_ONE_CM, centimeterDistance);
                 }
-                EnderscapeCriteria.LODESTONE_TELEPORTATION.trigger(player, context.stack(), new GlobalPos(context.linkedDimension(), BlockPos.containing(position)), destination);
+                EnderscapeCriteria.MIRROR_TELEPORT.trigger(player, context.stack(), new GlobalPos(context.linkedDimension(), BlockPos.containing(position)), destination);
             } else {
                 int centimeterDistance = Math.round((float) distance * 100.0F);
                 if (centimeterDistance > 0) {
                     player.awardStat(EnderscapeStats.MIRROR_ONE_CM, centimeterDistance);
                 }
-                EnderscapeCriteria.LODESTONE_TELEPORTATION.trigger(player, context.stack(), prior, destination);
+                EnderscapeCriteria.MIRROR_TELEPORT.trigger(player, context.stack(), prior, destination);
             }
         }
     }

@@ -1,14 +1,12 @@
 package net.xg787.enderscapesablecompat.mixin;
 
-import net.bunten.enderscape.item.ItemStackContext;
-import net.bunten.enderscape.item.LodestoneTrackerContext;
+import net.bunten.enderscape.item.MirrorContext;
+import net.bunten.enderscape.item.NebuliteToolContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.level.Level;
 import net.xg787.enderscapesablecompat.item.component.SableLodestoneTracker;
 import net.xg787.enderscapesablecompat.registry.EnderscapeSableDataComponents;
@@ -16,9 +14,9 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
-@Mixin(LodestoneTrackerContext.class)
-public class LodestoneTrackerContextMixin extends ItemStackContext {
-    public LodestoneTrackerContextMixin(ItemStack stack, Level level, LivingEntity user) {
+@Mixin(MirrorContext.class)
+public class MirrorContextMixin extends NebuliteToolContext {
+    public MirrorContextMixin(ItemStack stack, Level level, LivingEntity user) {
         super(stack, level, user);
     }
 

@@ -3,8 +3,8 @@
   "package": "net.xg787.enderscapesablecompat.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "LodestoneTeleporterMixin",
-    "LodestoneTrackerContextMixin"
+    "MirrorItemMixin",
+    "MirrorContextMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -99,7 +99,7 @@ dependencies {
     api("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:[${sable_companion_version},)")
 
     //enderscape
-    implementation "net.bunten.enderscape:enderscape-neoforge-2.1.0+mc1.21.1"
+    implementation "maven.modrinth:enderscape:1.0.9-neoforge"
     implementation "maven.modrinth:lithostitched:1.7.7-neoforge-21.1"
     implementation "maven.modrinth:trimmed:1.21-3.0.0+neoforge"
     implementation "maven.modrinth:yacl:3.8.2+1.21.1-neoforge"
