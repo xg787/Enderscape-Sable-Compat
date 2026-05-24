@@ -41,3 +41,10 @@ config="${mod_id}.mixins.json"
     ordering="NONE"
     side="BOTH"
 
+[[dependencies.${mod_id}]]
+   modId="enderscape"
+   type="required"
+   versionRange="[2.1.0,)"
+   ordering="NONE"
+   side="BOTH"
+

@@ -3,20 +3,13 @@ package net.xg787.enderscapesablecompat.mixin;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.SubLevel;
-import net.bunten.enderscape.EnderscapeConfig;
 import net.bunten.enderscape.item.LodestoneTeleporter;
 import net.bunten.enderscape.item.LodestoneTrackerContext;
 import net.bunten.enderscape.item.component.FueledTool;
-import net.bunten.enderscape.registry.EnderscapeDataComponents;
 import net.bunten.enderscape.registry.EnderscapeItemSounds;
-import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
@@ -56,7 +49,7 @@ public class LodestoneTeleporterMixin {
 
     /**
      * @author Xg787
-     * @reason Update target if sublevel moves
+     * @reason Update target if lodestone is on sublevel
      */
     @Overwrite
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
@@ -86,7 +79,7 @@ public class LodestoneTeleporterMixin {
 
     /**
      * @author Xg787
-     * @reason Take into account sub-levels
+     * @reason Move to sable lodestone tracker
      */
     @Overwrite
     public static void updateLodestoneTracker(ItemStack stack, Level level) {
@@ -104,7 +97,7 @@ public class LodestoneTeleporterMixin {
 
     /**
      * @author Xg787
-     * @reason Take into account sub-levels
+     * @reason Move to sable lodestone tracker
      */
     @Overwrite
     public static boolean isLinked(ItemStack stack) {
@@ -118,7 +111,7 @@ public class LodestoneTeleporterMixin {
 
     /**
      * @author Xg787
-     * @reason bap
+     * @reason Move to sable lodestone tracker
      */
     @Overwrite
     public static boolean wasLinkedBefore(ItemStack stack) {
@@ -128,7 +121,7 @@ public class LodestoneTeleporterMixin {
 
     /**
      * @author Xg787
-     * @reason Take into account sub-levels
+     * @reason Move to sable lodestone tracker
      */
     @Overwrite
     public InteractionResult useOn(UseOnContext context) {
@@ -160,59 +153,8 @@ public class LodestoneTeleporterMixin {
     }
 
     /**
-     * @author xg787
-     * @reason old mirror compat
-     */
-    @Overwrite
-    @OnlyIn(Dist.CLIENT)
-    public static void appendHoverText(ItemStack stack, List<Component> list) {
-        Minecraft client = Minecraft.getInstance();
-        EnderscapeConfig config = EnderscapeConfig.getInstance();
-        LodestoneTrackerContext context = new LodestoneTrackerContext(stack, client.level, client.player);
-        if (FueledTool.is(stack) && isLinked(stack) && config.mirrorTooltipEnabled) {
-            ChatFormatting headerColor = ChatFormatting.GRAY;
-            ChatFormatting infoColor = ChatFormatting.DARK_GRAY;
-            ChatFormatting valueColor = ChatFormatting.BLUE;
-            if (config.mirrorTooltipShiftToDisplay && !Screen.hasShiftDown()) {
-                list.add(enderscape_Sable_Compat$tooltip("unshifted").withStyle(headerColor));
-            } else {
-                BlockPos user = context.user().blockPosition();
-                BlockPos linkedPos = context.linkedPos();
-                ResourceKey<Level> linkedDimension = context.linkedDimension();
-                list.add(enderscape_Sable_Compat$tooltip("header").withStyle(headerColor));
-                if (config.mirrorTooltipDisplayCoordinates) {
-                    MutableComponent position = enderscape_Sable_Compat$tooltip("position.coordinates", linkedPos.getX(), linkedPos.getY(), linkedPos.getZ()).withStyle(valueColor);
-                    MutableComponent unknown = enderscape_Sable_Compat$tooltip("position.unknown").withStyle(valueColor);
-                    MutableComponent component = enderscape_Sable_Compat$tooltip("position", isSameDimension(context, linkedDimension) ? position : unknown);
-                    list.add(CommonComponents.space().append(component.withStyle(infoColor)));
-                }
-
-                if (config.mirrorTooltipDisplayDistance) {
-                    float step = (float)(Integer)stack.get(EnderscapeDataComponents.DISTANCE_TO_INCREASE) / 2.0F;
-                    int roundedDistance = (int)((float)Math.round((float)distanceBetweenPoints(user, linkedPos) / step) * step);
-                    MutableComponent approximate = enderscape_Sable_Compat$tooltip("distance.approximate_value", roundedDistance).withStyle(valueColor);
-                    MutableComponent unknown = enderscape_Sable_Compat$tooltip("distance.unknown").withStyle(valueColor);
-                    MutableComponent component = enderscape_Sable_Compat$tooltip("distance", isSameDimension(context, linkedDimension) ? approximate : unknown);
-                    list.add(CommonComponents.space().append(component.withStyle(infoColor)));
-                }
-
-                if (config.mirrorTooltipDisplayDimension) {
-                    MutableComponent dimension = Component.translatable(Util.makeDescriptionId("dimension", linkedDimension.location())).withStyle(valueColor);
-                    MutableComponent component = enderscape_Sable_Compat$tooltip("dimension", dimension);
-                    list.add(CommonComponents.space().append(component.withStyle(infoColor)));
-                }
-            }
-        }
-    }
-
-    @Unique
-    private static MutableComponent enderscape_Sable_Compat$tooltip(String name, Object... objects) {
-        return Component.translatable("item.enderscape.lodestone_teleportation.desc." + name, objects);
-    }
-
-    /**
      * @author Xg787
-     * @reason bap
+     * @reason Fix unloaded sublevel teleport and move to sable lodestone tracker
      */
     @Overwrite
     public static Optional<Vec3> getTeleportPosition(LodestoneTrackerContext context) {
