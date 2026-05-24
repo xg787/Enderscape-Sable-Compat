@@ -1,21 +1,25 @@
 package net.xg787.enderscapesablecompat.mixin;
 
 import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.bunten.enderscape.item.LodestoneTeleporter;
 import net.bunten.enderscape.item.LodestoneTrackerContext;
 import net.bunten.enderscape.item.component.FueledTool;
+import net.bunten.enderscape.registry.EnderscapeCriteria;
 import net.bunten.enderscape.registry.EnderscapeItemSounds;
+import net.bunten.enderscape.registry.EnderscapeStats;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -31,18 +35,14 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.xg787.enderscapesablecompat.item.component.SableLodestoneTracker;
 import net.xg787.enderscapesablecompat.registry.EnderscapeSableDataComponents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
 
-import java.util.List;
 import java.util.Optional;
 
-import static net.bunten.enderscape.item.LodestoneTeleporter.*;
 
 @Mixin(LodestoneTeleporter.class)
 public class LodestoneTeleporterMixin {
@@ -185,5 +185,41 @@ public class LodestoneTeleporterMixin {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * @author Xg787
+     * @reason fix statistics and advancement
+     */
+    @Overwrite
+    private static void awardStatistics(LodestoneTrackerContext context, GlobalPos prior, GlobalPos destination, boolean fromDispenser) {
+        if (context.user() instanceof ServerPlayer player) {
+            if (!player.getAbilities().instabuild || fromDispenser) player.getCooldowns().addCooldown(context.stack().getItem(), 100);
+
+            player.awardStat(Stats.ITEM_USED.get(context.stack().getItem()));
+            player.awardStat(EnderscapeStats.MIRROR_TELEPORT);
+
+            Level level = context.level();
+            SubLevelAccess subLevelAccess = SableCompanion.INSTANCE.getContaining(level, context.stack().get(EnderscapeSableDataComponents.SABLE_LODESTONE_TRACKER).sable_target().get().pos());
+
+            double distance = Math.sqrt(SableCompanion.INSTANCE.distanceSquaredWithSubLevels(level, prior.pos().getCenter(), destination.pos().getCenter()));
+
+            if (subLevelAccess != null) {
+                distance = Math.sqrt(SableCompanion.INSTANCE.distanceSquaredWithSubLevels(level, prior.pos().getCenter(), context.stack().get(EnderscapeSableDataComponents.SABLE_LODESTONE_TRACKER).sable_target().get().pos().getCenter()));
+                Pose3dc pose = subLevelAccess.logicalPose();
+                Vec3 position = pose.transformPosition(context.stack().get(EnderscapeSableDataComponents.SABLE_LODESTONE_TRACKER).sable_target().get().pos().getCenter());
+                int centimeterDistance = Math.round((float) distance * 100.0F);
+                if (centimeterDistance > 0) {
+                    player.awardStat(EnderscapeStats.MIRROR_ONE_CM, centimeterDistance);
+                }
+                EnderscapeCriteria.LODESTONE_TELEPORTATION.trigger(player, context.stack(), new GlobalPos(context.linkedDimension(), BlockPos.containing(position)), destination);
+            } else {
+                int centimeterDistance = Math.round((float) distance * 100.0F);
+                if (centimeterDistance > 0) {
+                    player.awardStat(EnderscapeStats.MIRROR_ONE_CM, centimeterDistance);
+                }
+                EnderscapeCriteria.LODESTONE_TELEPORTATION.trigger(player, context.stack(), prior, destination);
+            }
+        }
     }
 }
