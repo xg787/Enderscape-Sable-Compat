@@ -15,6 +15,7 @@ import net.bunten.enderscape.registry.EnderscapeStats;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -60,6 +61,7 @@ public abstract class MirrorItemMixin extends NebuliteToolItem {
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         updateLodestoneTracker(stack, level);
         enderscape_Sable_Compat$updateTarget(stack, level);
+        enderscape_Sable_Compat$updateTracker(stack);
     }
 
     @Unique
@@ -79,6 +81,14 @@ public abstract class MirrorItemMixin extends NebuliteToolItem {
                     stack.set(EnderscapeSableDataComponents.SABLE_LODESTONE_TRACKER, new SableLodestoneTracker(Optional.of(GlobalPos.of(level.dimension(), position)), Optional.of(GlobalPos.of(level.dimension(), blockPos)), true));
                 }
             }
+        }
+    }
+
+    @Unique
+    private static void enderscape_Sable_Compat$updateTracker(ItemStack stack) {
+        if (stack.has(DataComponents.LODESTONE_TRACKER) && !stack.has(EnderscapeSableDataComponents.SABLE_LODESTONE_TRACKER)) {
+            stack.set(EnderscapeSableDataComponents.SABLE_LODESTONE_TRACKER, new SableLodestoneTracker(stack.get(DataComponents.LODESTONE_TRACKER).target(), stack.get(DataComponents.LODESTONE_TRACKER).target(), true));
+            stack.remove(DataComponents.LODESTONE_TRACKER);
         }
     }
 
