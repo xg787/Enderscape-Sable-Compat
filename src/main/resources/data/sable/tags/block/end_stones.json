@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#enderscape:veradite_blocks",
+    "#enderscape:mirestone_blocks",
+    "#enderscape:kurodite_blocks",
+    "#enderscape:magnia_blocks",
+    "#enderscape:end_ore_blocks"
+  ]
+}
